@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit;
  * @Date 2020/12/28
  */
 public class LogEventBroadcast {
-    private int count = 1000;
     private final EventLoopGroup group;
     private final Bootstrap bootstrap;
-    private File file;
+    private final File file;
+    private final InetSocketAddress address = new InetSocketAddress("225.0.0.100", 9999);
 
     public LogEventBroadcast(InetSocketAddress address, File file) {
         group = new NioEventLoopGroup();
@@ -32,9 +32,10 @@ public class LogEventBroadcast {
     }
 
     public void run() throws Exception {
-        Channel channel = bootstrap.bind(new InetSocketAddress("192.168.0.107", 8888)).sync().channel();
+//        Channel channel = bootstrap.bind(new InetSocketAddress("192.168.0.107", 8888)).sync().channel();
+        Channel channel = bootstrap.bind(8888).sync().channel();
         long pt = 0;
-        while (count-- > 0) {
+        while (true) {
             if (pt > file.length()) {
                 // reset
                 pt = 0;

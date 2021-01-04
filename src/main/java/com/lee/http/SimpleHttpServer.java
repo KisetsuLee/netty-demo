@@ -32,7 +32,6 @@ public class SimpleHttpServer {
                                 .addLast(new SimpleChannelInboundHandler<HttpObject>() {
                                     @Override
                                     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-                                        System.out.println("111");
                                         if (msg instanceof HttpRequest) {
                                             HttpRequest httpRequest = (HttpRequest) msg;
                                             System.out.printf("收到来自%s客户端的消息%n", ctx.channel().remoteAddress());

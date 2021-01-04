@@ -24,8 +24,10 @@ public class LogEventMonitor {
                     }
                 });
         Channel channel = bootstrap.bind(9999).channel();
+        Channel channel2 = bootstrap.clone().bind(9998).channel();
         try {
             channel.closeFuture().sync();
+            channel2.closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
