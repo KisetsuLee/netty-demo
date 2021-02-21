@@ -32,26 +32,36 @@ public final class SctpEchoClient {
         // Configure the client.
         EventLoopGroup group = new NioEventLoopGroup();
         try {
-            Bootstrap b = new Bootstrap();
-            b.group(group)
-                    .channel(NioSctpChannel.class)
-                    .option(SctpChannelOption.SCTP_NODELAY, true)
-                    .handler(new ChannelInitializer<SctpChannel>() {
-                        @Override
-                        public void initChannel(SctpChannel ch) throws Exception {
-                            ch.pipeline().addLast(
-                                    //new LoggingHandler(LogLevel.INFO),
-                                    new SctpEchoClientHandler());
-                        }
-                    });
-
-            // Start the client.
-            ChannelFuture f = b.connect(HOST, PORT).sync();
-            // Wait until the connection is closed.
-            f.channel().closeFuture().sync();
+            startConnect(group);
+            disConnect(group);
+            startConnect(group);
         } finally {
             // Shut down the event loop to terminate all threads.
             group.shutdownGracefully();
         }
+    }
+
+    private static void disConnect(EventLoopGroup group) {
+        group.shutdownGracefully();
+    }
+
+    private static void startConnect(EventLoopGroup group) throws InterruptedException {
+        Bootstrap b = new Bootstrap();
+        b.group(group)
+                .channel(NioSctpChannel.class)
+                .option(SctpChannelOption.SCTP_NODELAY, true)
+                .handler(new ChannelInitializer<SctpChannel>() {
+                    @Override
+                    public void initChannel(SctpChannel ch) throws Exception {
+                        ch.pipeline().addLast(
+                                //new LoggingHandler(LogLevel.INFO),
+                                new SctpEchoClientHandler());
+                    }
+                });
+
+        // Start the client.
+        ChannelFuture f = b.connect(HOST, PORT).sync();
+        // Wait until the connection is closed.
+        f.channel().closeFuture().sync();
     }
 }
