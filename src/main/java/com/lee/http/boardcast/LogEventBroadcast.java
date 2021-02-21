@@ -33,7 +33,7 @@ public class LogEventBroadcast {
 
     public void run() throws Exception {
 //        Channel channel = bootstrap.bind(new InetSocketAddress("192.168.0.107", 8888)).sync().channel();
-        Channel channel = bootstrap.bind(8888).sync().channel();
+        Channel channel = bootstrap.bind("127.0.0.1", 8888).sync().channel();
         long pt = 0;
         while (true) {
             if (pt > file.length()) {

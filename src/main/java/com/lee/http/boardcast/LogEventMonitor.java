@@ -23,8 +23,8 @@ public class LogEventMonitor {
                         ch.pipeline().addLast(new LogDecoder()).addLast(new LogHandler());
                     }
                 });
-        Channel channel = bootstrap.bind(9999).channel();
-        Channel channel2 = bootstrap.clone().bind(9998).channel();
+        Channel channel = bootstrap.bind("127.0.0.1", 9999).channel();
+        Channel channel2 = bootstrap.clone().bind("192.168.0.107", 9999).channel();
         try {
             channel.closeFuture().sync();
             channel2.closeFuture().sync();
