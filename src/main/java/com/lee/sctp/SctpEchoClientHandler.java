@@ -11,6 +11,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.sctp.SctpMessage;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+
 /**
  * Handler implementation for the SCTP echo client.  It initiates the ping-pong
  * traffic between the echo client and server by sending the first message to
@@ -19,11 +22,13 @@ import io.netty.channel.sctp.SctpMessage;
 public class SctpEchoClientHandler extends ChannelInboundHandlerAdapter {
 
     private final ByteBuf firstMessage;
+    HashMap<String, String> addr = new HashMap<>();
 
     /**
      * Creates a client-side handler.
      */
-    public SctpEchoClientHandler() {
+    public SctpEchoClientHandler(HashMap<String, String> addr) {
+        this.addr = addr;
         firstMessage = Unpooled.buffer(SctpEchoClient.SIZE);
         for (int i = 0; i < firstMessage.capacity(); i++) {
             firstMessage.writeByte((byte) i);
@@ -37,12 +42,15 @@ public class SctpEchoClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.write(msg);
+        SctpMessage message = (SctpMessage) msg;
+        String s = message.content().toString(StandardCharsets.UTF_8);
+        System.out.println(s);
+//        ctx.write(msg);
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.flush();
+//        ctx.flush();
     }
 
     @Override
