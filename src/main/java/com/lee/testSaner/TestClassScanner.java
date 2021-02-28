@@ -14,7 +14,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -25,10 +24,10 @@ import static com.lee.testSaner.annotation.CI.Scope;
  * @Date 2021/2/27
  */
 public class TestClassScanner {
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        TestClassScanner saner = new TestClassScanner("");
+    public static void main(String[] args) throws IOException {
+        String pName = System.getProperty("package", null);
+        TestClassScanner saner = new TestClassScanner(pName);
         saner.printTestCase(Scope.DAILY);
-//        System.out.println(Arrays.toString(getClasses(sanerClass.getPackage().getName())));
     }
 
     private final String packageName;
@@ -52,9 +51,8 @@ public class TestClassScanner {
         this.path = new File(resource.getFile()).toPath();
     }
 
-    public void printTestCase(Scope... scope) throws IOException, ClassNotFoundException {
-//        Stream.of(getClasses())
-        Stream.of(RecursiveGetClasses())
+    public void printTestCase(Scope... scope) throws IOException {
+        Stream.of(getClasses())
                 .filter(c -> {
                     if (Modifier.isAbstract(c.getModifiers())) return false;
                     CI annotation = c.getAnnotation(CI.class);
@@ -89,7 +87,6 @@ public class TestClassScanner {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 String currentFilePath = String.join("/", pathList) + "/" + file.getFileName().toString();
-                System.out.println(currentFilePath);
                 fileNames.add(currentFilePath);
                 return super.visitFile(file, attrs);
             }
@@ -107,38 +104,4 @@ public class TestClassScanner {
         }
     }
 
-    private Class<?>[] RecursiveGetClasses() throws ClassNotFoundException, IOException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        assert classLoader != null;
-        String path = this.packageName.replace('.', '/');
-        Enumeration<URL> resources = classLoader.getResources(path);
-        List<File> dirs = new ArrayList<>();
-        while (resources.hasMoreElements()) {
-            URL resource = resources.nextElement();
-            dirs.add(new File(resource.getFile()));
-        }
-        ArrayList<Class<?>> classes = new ArrayList<>();
-        for (File directory : dirs) {
-            classes.addAll(findClasses(directory, this.packageName));
-        }
-        return classes.toArray(new Class[0]);
-    }
-
-    private List<Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List<Class<?>> classes = new ArrayList<>();
-        if (!directory.exists()) {
-            return classes;
-        }
-        File[] files = directory.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                assert !file.getName().contains(".");
-                classes.addAll(findClasses(file, "".equals(packageName) ? file.getName() :
-                        packageName + "." + file.getName()));
-            } else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-            }
-        }
-        return classes;
-    }
 }
