@@ -7,10 +7,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -20,7 +17,7 @@ import javax.ws.rs.core.MediaType;
 @Path("cal")
 public class CalRestfulServer {
     @GET
-    @Path("squareRoot")
+    @Path("squareRoot") // 平方根
     @Produces(MediaType.APPLICATION_JSON)
     public Result squareRoot(@QueryParam("input") double input) {
         Result result = new Result("Square Root");
@@ -30,9 +27,9 @@ public class CalRestfulServer {
     }
 
     @GET
-    @Path("square")
+    @Path("square/{input}") // 平方
     @Produces(MediaType.APPLICATION_JSON)
-    public Result square(@QueryParam("input") double input) {
+    public Result square(@PathParam("input") double input) {
         Result result = new Result("Square");
         result.setInput(input);
         result.setOutput(result.getInput() * result.getInput());
