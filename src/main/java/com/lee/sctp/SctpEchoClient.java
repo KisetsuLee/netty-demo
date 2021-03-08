@@ -1,10 +1,5 @@
 package com.lee.sctp;
 
-/**
- * @Author Lee
- * @Date 2021/2/21
- */
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -13,7 +8,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.SctpChannel;
 import io.netty.channel.sctp.SctpChannelOption;
 import io.netty.channel.sctp.nio.NioSctpChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +22,9 @@ import java.util.concurrent.TimeUnit;
  * Simply put, the echo client initiates the ping-pong
  * traffic between the echo client and server by sending the first message to
  * the server.
+ *
+ * @Author Lee
+ * @Date 2021/2/21
  */
 public final class SctpEchoClient {
 
@@ -32,7 +33,7 @@ public final class SctpEchoClient {
     static final int SIZE = Integer.parseInt(System.getProperty("size", "256"));
     static final HashMap<String, Channel> channelMap = new HashMap<>();
     static EventLoopGroup group = null;
-    static final HashMap<String, String> addr = new HashMap<>();
+    static SocketAddress addr = null;
 
 
     public static void main(String[] args) throws Exception {
@@ -52,8 +53,6 @@ public final class SctpEchoClient {
     }
 
     private static void disConnect() {
-        Channel c = channelMap.get("c");
-        c.close();
         group.shutdownGracefully();
     }
 
@@ -67,19 +66,13 @@ public final class SctpEchoClient {
                 .handler(new ChannelInitializer<SctpChannel>() {
                     @Override
                     public void initChannel(SctpChannel ch) throws Exception {
-                        ch.pipeline().addLast(
-                                //new LoggingHandler(LogLevel.INFO),
-                                new SctpEchoClientHandler(addr));
+                        ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO), new SctpEchoClientHandler());
                     }
                 });
-
-        // Start the client.
-//        ChannelFuture f = b.connect(HOST, PORT).sync();
-        // Wait until the connection is closed.
-//        f.channel().closeFuture().sync();
-        if (addr.get("a") != null) {
-            b.bind("127.0.0.1", 8899).sync();
+        if (addr != null) {
+            b.localAddress(addr);
         }
-        channelMap.put("c", b.connect(HOST, PORT).sync().channel());
+        Channel channel = b.connect(HOST, PORT).sync().channel();
+        addr = channel.localAddress();
     }
 }

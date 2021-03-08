@@ -45,7 +45,7 @@ public final class SctpMultiHomingEchoClient {
                         public void initChannel(SctpChannel ch) throws Exception {
                             ch.pipeline().addLast(
 //                             new LoggingHandler(LogLevel.INFO),
-                                    new SctpEchoClientHandler(null));
+                                    new SctpEchoClientHandler());
                         }
                     });
 

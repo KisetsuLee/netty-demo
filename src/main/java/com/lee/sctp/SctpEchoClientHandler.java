@@ -22,13 +22,11 @@ import java.util.HashMap;
 public class SctpEchoClientHandler extends ChannelInboundHandlerAdapter {
 
     private final ByteBuf firstMessage;
-    HashMap<String, String> addr = new HashMap<>();
 
     /**
      * Creates a client-side handler.
      */
-    public SctpEchoClientHandler(HashMap<String, String> addr) {
-        this.addr = addr;
+    public SctpEchoClientHandler() {
         firstMessage = Unpooled.buffer(SctpEchoClient.SIZE);
         for (int i = 0; i < firstMessage.capacity(); i++) {
             firstMessage.writeByte((byte) i);

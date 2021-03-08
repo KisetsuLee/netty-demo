@@ -11,11 +11,15 @@ import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import java.net.InetSocketAddress;
+
 /**
  * @Author Lee
  * @Date 2021/2/21
  */
 public class SctpEchoService {
+
+    static final String HOST = System.getProperty("host", "127.0.0.1");
     static final int PORT = Integer.parseInt(System.getProperty("port", "8007"));
 
     public static void main(String[] args) throws Exception {
@@ -32,15 +36,11 @@ public class SctpEchoService {
                     .childHandler(new ChannelInitializer<SctpChannel>() {
                         @Override
                         public void initChannel(SctpChannel ch) throws Exception {
-                            ch.pipeline().addLast(
-                                    //new LoggingHandler(LogLevel.INFO),
-                                    serverHandler);
+                            ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO), serverHandler);
                         }
                     });
-
             // Start the server.
-            ChannelFuture f = b.bind(PORT).sync();
-
+            ChannelFuture f = b.bind(new InetSocketAddress(HOST, PORT)).sync();
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();
         } finally {
