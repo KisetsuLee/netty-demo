@@ -63,6 +63,7 @@ public final class SctpEchoClient {
         b.group(group)
                 .channel(NioSctpChannel.class)
                 .option(SctpChannelOption.SCTP_NODELAY, true)
+                .option(SctpChannelOption.SO_REUSEADDR, true)
                 .handler(new ChannelInitializer<SctpChannel>() {
                     @Override
                     public void initChannel(SctpChannel ch) throws Exception {
