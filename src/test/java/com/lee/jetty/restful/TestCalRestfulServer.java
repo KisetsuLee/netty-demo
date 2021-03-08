@@ -6,6 +6,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.io.FileNotFoundException;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -16,10 +18,14 @@ import static org.hamcrest.Matchers.equalTo;
 @Test
 public class TestCalRestfulServer {
     private Server server;
+    private final int port = 8080;
+    private final int securityPort = 8445;
+    private final String baseUri = "http://127.0.0.1";
+    private final String securityBaseUri = "https://127.0.0.1";
 
     @BeforeTest
-    void initJettyServer() {
-        server = new CalRestfulServer().createServer(8888);
+    void initJettyServer() throws FileNotFoundException {
+        server = new CalRestfulServer().createHttpAndHttpsServer(port, securityPort);
     }
 
     @BeforeMethod
@@ -29,19 +35,27 @@ public class TestCalRestfulServer {
 
     @Test
     void testSquareRoot() {
-        given().baseUri("http://127.0.0.1").port(8888).basePath("/cal/squareRoot")
+        given().baseUri(baseUri).port(port).basePath("/cal/squareRoot")
                 .param("input", "25")
                 .and().get()
-//        get("http://127.0.0.1:8888/cal/squareRoot?input=25")
                 .then().assertThat().body("output", equalTo(5.0F));
     }
 
     @Test
     void testSquare() {
-        given().baseUri("http://127.0.0.1").port(8888).basePath("/cal/square/{input}")
+        given().baseUri(baseUri).port(port).basePath("/cal/square/{input}")
                 .pathParam("input", 5)
                 .and().get()
-//        get("http://127.0.0.1:8888/cal/square/5")
+                .then().assertThat().body("output", equalTo(25.0F));
+    }
+
+    @Test
+    void testHttpsSquare() {
+        given().relaxedHTTPSValidation()
+//                .keyStore(this.getClass().getResource("https.keystore").getFile(), "store123")
+                .baseUri(securityBaseUri).port(securityPort).basePath("/cal/square/{input}")
+                .pathParam("input", 5)
+                .and().get()
                 .then().assertThat().body("output", equalTo(25.0F));
     }
 

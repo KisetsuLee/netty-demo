@@ -2,13 +2,18 @@ package com.lee.jetty.restful;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * @Author Lee
@@ -48,7 +53,7 @@ public class CalRestfulServer {
         }
     }
 
-    public Server createServer(int port) {
+    public Server createHttpServer(int port) {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
 
@@ -61,8 +66,45 @@ public class CalRestfulServer {
         return server;
     }
 
-    public static void main(String[] args) {
-        Server jettyServer = new CalRestfulServer().createServer(8888);
+    public Server createHttpAndHttpsServer(int httpPort, int httpsPort) throws FileNotFoundException {
+        java.nio.file.Path keystorePath = Paths.get("src/main/resources/etc/https.keystore").toAbsolutePath();
+        if (!Files.exists(keystorePath)) throw new FileNotFoundException(keystorePath.toString());
+
+        Server server = createHttpServer(httpPort);
+
+        HttpConfiguration httpConfiguration = new HttpConfiguration();
+        httpConfiguration.setSecureScheme("https");
+        httpConfiguration.setSecurePort(httpsPort);
+
+        ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
+        http.setPort(httpPort);
+        http.setIdleTimeout(30000);
+
+        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfiguration);
+        SecureRequestCustomizer src = new SecureRequestCustomizer();
+        src.setStsMaxAge(2000);
+        src.setStsIncludeSubDomains(true);
+        httpsConfig.addCustomizer(src);
+
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+        sslContextFactory.setKeyStorePath(keystorePath.toString());
+        sslContextFactory.setKeyStorePassword("store123");
+        sslContextFactory.setKeyManagerPassword("key123");
+//        sslContextFactory.setWantClientAuth(true);
+//        sslContextFactory.setNeedClientAuth(true);
+
+        ServerConnector https = new ServerConnector(server,
+                new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                new HttpConnectionFactory(httpsConfig));
+        https.setPort(httpsPort);
+        https.setIdleTimeout(500000);
+
+        server.setConnectors(new Connector[]{http, https});
+        return server;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException {
+        Server jettyServer = new CalRestfulServer().createHttpAndHttpsServer(8080, 8445);
         try {
             jettyServer.start();
             jettyServer.join();
